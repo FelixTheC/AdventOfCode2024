@@ -117,8 +117,7 @@ fn main() {
                     multiplier = Multiplier::new();
                 }
             },
-            Err(e) => {
-                result += multiplier.get_result();
+            Err(_) => {
                 multiplier = Multiplier::new()
             }
         }
