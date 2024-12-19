@@ -54,6 +54,7 @@ impl Xmas {
         }
     }
 
+    #[allow(dead_code)]
     fn is_complete(&self) -> bool {
         self.x && self.m && self.a && self.s
     }
@@ -191,6 +192,140 @@ fn find_bottom_left_to_upper_right(grid: &Vec<Vec<char>>, row: usize, col: usize
     xmas.complete_result()
 }
 
+fn ceres_x_search_sub(grid: &Vec<Vec<char>>, row: usize, col: usize) -> u16 {
+    let mut result: u16 = 0;
+
+    let mut hxmas = Xmas::new();
+    hxmas.set_token('X');
+    hxmas.set_token('A');
+    hxmas.set_token(find_next_to_the_right(grid, row, col));
+    hxmas.set_token(find_prev_to_the_left(grid, row, col));
+
+    let mut vxmas = Xmas::new();
+    vxmas.set_token('X');
+    vxmas.set_token('A');
+    vxmas.set_token(find_next_top_to_bottom(grid, row, col));
+    vxmas.set_token(find_prev_bottom_to_top(grid, row, col));
+
+    let mut rdiagonalxmas = Xmas::new();
+    rdiagonalxmas.set_token('X');
+    rdiagonalxmas.set_token('A');
+    rdiagonalxmas.set_token(find_upper_right(grid, row, col));
+    rdiagonalxmas.set_token(find_bottom_left(grid, row, col));
+
+    let mut ldiagonalxmas = Xmas::new();
+    ldiagonalxmas.set_token('X');
+    ldiagonalxmas.set_token('A');
+    ldiagonalxmas.set_token(find_bottom_right(grid, row, col));
+    ldiagonalxmas.set_token(find_upper_left(grid, row, col));
+
+    if hxmas.is_complete() && vxmas.is_complete() {
+        result += 1;
+    }
+    if rdiagonalxmas.is_complete() && ldiagonalxmas.is_complete() {
+        result += 1;
+    }
+
+    result
+}
+
+fn find_upper_left(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    // diagonal lookup
+    if row + 1 < grid.len() && 1 <= col {
+        grid[row + 1][col - 1]
+    } else { ' ' }
+}
+
+fn find_bottom_left(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    // diagonal lookup
+    if row >= 1 && col >= 1 {
+        grid[row - 1][col - 1]
+    } else { ' ' }
+}
+
+fn find_bottom_right(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+    // diagonal lookup
+    if 0 < row && col < grid[row].len() - 2 {
+        grid[row - 1][col + 1]
+    } else { ' ' }
+}
+
+fn find_upper_right(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    // diagonal lookup
+    if row + 1 < grid.len() && col + 1 < grid[row].len() {
+        grid[row + 1][col + 1]
+    } else { ' ' }
+}
+
+fn find_prev_bottom_to_top(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    if row > 0 && row <= grid.len() - 1 {
+        grid[row - 1][col]
+    } else { ' ' }
+}
+
+fn find_next_top_to_bottom(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    if row <= grid.len() - 2 {
+        grid[row + 1][col]
+    } else {
+        ' '
+    }
+}
+
+fn find_next_to_the_right(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    if col <= grid[row].len() - 2 {
+        grid[row][col + 1]
+    } else {
+        ' '
+    }
+}
+
+fn find_prev_to_the_left(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let mut xmas = Xmas::new();
+    xmas.set_token('X');
+    xmas.set_token('M');
+    xmas.set_token('A');
+
+    if col >= 1 {
+        grid[row][col - 1]
+    }else {
+        ' '
+    }
+}
+
 fn ceres_search_sub(grid: &Vec<Vec<char>>, row: usize, col: usize) -> u16 {
     let mut result: u16 = 0;
 
@@ -217,7 +352,19 @@ pub fn ceres_search(grid: &Vec<Vec<char>>) -> u16 {
             }
         }
     }
+    result
+}
 
+pub fn ceres_x_search(grid: &Vec<Vec<char>>) -> u16 {
+    let mut result: u16 = 0;
+
+    for (row_nr, row) in grid.iter().enumerate() {
+        for (col_nr, chr) in row.iter().enumerate() {
+            if chr == &'A' {
+                result += ceres_x_search_sub(grid, row_nr, col_nr);
+            }
+        }
+    }
     result
 }
 
@@ -404,5 +551,72 @@ mod tests {
 
         assert_eq!(find_bottom_left_to_upper_right(&input, 6, 0), 1);
         assert_eq!(find_bottom_left_to_upper_right(&input, 3, 4), 1);
+    }
+
+    #[test]
+    fn test_simple_x_mas_search()
+    {
+        {
+            let input = vec![
+                vec!['X','M','S'],
+                vec!['M','A','S'], // <--
+                vec!['X','S','S']
+            ];
+
+            assert_eq!(ceres_x_search_sub(&input, 1, 1), 1);
+        }
+        {
+            let input = vec![
+                vec!['X','S','S'],
+                vec!['M','A','S'], // <--
+                vec!['X','M','S']
+            ];
+
+            assert_eq!(ceres_x_search_sub(&input, 1, 1), 1);
+        }
+
+        {
+            let input = vec![
+                vec!['X','S','S'],
+                vec!['S','A','M'], // <--
+                vec!['X','M','S']
+            ];
+
+            assert_eq!(ceres_x_search_sub(&input, 1, 1), 1);
+        }
+
+        {
+            let input = vec![
+                vec!['X','S','S'],
+                vec!['M','A','M'], // <--
+                vec!['X','S','S']
+            ];
+
+            assert_eq!(ceres_x_search_sub(&input, 1, 1), 0);
+        }
+    }
+
+    #[test]
+    fn test_x_mas_diagonal_search()
+    {
+        {
+            let input = vec![
+                vec!['M','X','S'],
+                vec!['M','A','X'], // <--
+                vec!['M','S','S']
+            ];
+
+            assert_eq!(ceres_x_search_sub(&input, 1, 1), 1);
+        }
+
+        {
+            let input = vec![
+                vec!['S','X','M'],
+                vec!['M','A','X'], // <--
+                vec!['S','S','M']
+            ];
+
+            assert_eq!(ceres_x_search_sub(&input, 1, 1), 1);
+        }
     }
 }
